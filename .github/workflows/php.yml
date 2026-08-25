@@ -1,0 +1,39 @@
+name: PHP Composer  # nom du workflow qui permet de verifier que le composer json et log es valide
+
+on:                 # sur quel evenement 
+  push:             # sur l'evenemennt push, des quon pousse une infos sur la master
+    branches: [ "master" ]
+  pull_request:     # sur chaque pull request on vas egalement executer ce workflow
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:               # ici on execute des jobs donc des commandes 
+  build:
+
+    runs-on: ubuntu-latest # dans un  environment ubuntu
+
+    steps:                 # ensuite on aura diff etapes
+    - uses: actions/checkout@v4
+
+    - name: Validate composer.json and composer.lock # ici cest le nom de ce qu'on va faire, cest coe une description 
+      run: composer validate --strict #ceci es la commande qui va s'executer
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies 
+      run: composer install --prefer-dist --no-progress #verifie les dependances
+
+    # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
+    # Docs: https://getcomposer.org/doc/articles/scripts.md
+
+    # - name: Run test suite
+    #   run: composer run-script test
